@@ -10,6 +10,10 @@ import time
 
 # uploads all images and renames them to returned faceID
 def upload_images():
+    # just in case if dir is deleted (also github does not allow empty directories)
+    if not os.path.isdir('faces/uploaded_faces'):
+        os.mkdir('faces/uploaded_faces')
+
     local_faces = get_local_faces()
     for face in local_faces:
         image = open('faces/local_faces/' + face, 'rb').read()
