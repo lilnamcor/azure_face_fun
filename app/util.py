@@ -7,6 +7,8 @@ import requests
 import os
 import json
 import time
+from PIL import Image
+from resizeimage import resizeimage
 
 # uploads all images and renames them to returned faceID
 def upload_images():
@@ -16,7 +18,9 @@ def upload_images():
 
     local_faces = get_local_faces()
     for face in local_faces:
-        image = open('faces/local_faces/' + face, 'rb').read()
+        local_face_path = 'faces/local_faces/' + face
+        resize_image(local_face_path)
+        image = open(local_face_path, 'rb').read()
 
         headers = get_headers('application/octet-stream')
 
@@ -34,7 +38,7 @@ def upload_images():
             size = faceRectangle['width'] * faceRectangle['height']
             add_face(face_id, size, json.dumps(resp), dt.now())
 
-            os.rename('faces/local_faces/' + face, 'faces/uploaded_faces/' + face_id + '.jpg') # rename to match the face_id
+            os.rename(local_face_path, 'faces/uploaded_faces/' + face_id + '.jpg') # rename to match the face_id
         except:
             # some prints to help understand why an error occurred
             print(resp.status_code)
@@ -42,9 +46,18 @@ def upload_images():
 
             # moved to bad folder so we do not try to upload again
             # seems like azure API can't determine if its a face
-            os.rename('faces/local_faces/' + face, 'faces/bad_faces/' + face)
-            continue
+            os.rename(local_face_path, 'faces/bad_faces/' + face)
         time.sleep(3) # I'm rate limited to 20 actions per minute :(
+
+# standardize all image sizes, this seems to be standard size in all face datasets
+def resize_image(image, w=640, h=480):
+    f = open(image, 'rb')
+    img = Image.open(f)
+    width, height = img.size
+    if width != w or height != h:
+        img = resizeimage.resize_cover(img, [w, h])
+        img.save(image, img.format)
+    f.close()
 
 def get_face_data(face):
     return json.loads(Face.query.filter(Face.face_id == face).first().face_data)

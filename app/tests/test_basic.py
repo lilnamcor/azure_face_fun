@@ -2,6 +2,9 @@ import unittest
 import json
 from datetime import datetime as dt
 from datetime import timedelta
+from PIL import Image
+from shutil import copyfile
+import os
 
 from app import create_app
 from app.models import db, Face
@@ -72,6 +75,22 @@ class BasicTests(unittest.TestCase):
         self.assertEqual(remove_jpg_extension(jpg), ['test'])
         self.assertEqual(remove_jpg_extension(no_jpg), ['hello'])
 
+    def test_resize_image(self):
+        copyfile('app/tests/test.jpg', 'app/tests/test1.jpg')
+        img = Image.open('app/tests/test1.jpg')
+        self.assertEqual(img.size, (1280, 960))
+
+        resize_image('app/tests/test1.jpg')
+        img = Image.open('app/tests/test1.jpg')
+        self.assertEqual(img.size, (640, 480))
+        os.remove('app/tests/test1.jpg') # image is downsized and cannot upsize it, so delete and copy again
+        copyfile('app/tests/test.jpg', 'app/tests/test1.jpg')
+
+        resize_image('app/tests/test1.jpg', 1280, 960)
+        img = Image.open('app/tests/test1.jpg')
+        self.assertEqual(img.size, (1280, 960))
+
+        os.remove('app/tests/test1.jpg')
 
 if __name__ == "__main__":
     unittest.main()

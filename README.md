@@ -3,6 +3,7 @@ Face Fun
 
 ### To get started first
     $ pip install flask
+    # pip install python-resize-image
 
 ### To upload faces (face_id only last 24 hours in Azure) make sure the faces are in local_faces
     $ flask shell
